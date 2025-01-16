@@ -240,6 +240,7 @@ class SharkSDPipeline(TurbinePipelineBase):
         add_tk_kernels: bool = False,
         tk_kernels_dir: str | dict[str] = None,
         save_outputs: bool | dict[bool] = False,
+        external_weight_archive_map = None,
     ):
         common_export_args = {
             "hf_model_name": None,
@@ -303,6 +304,11 @@ class SharkSDPipeline(TurbinePipelineBase):
                 self.map[submodel]["export_args"][
                     "external_weight_path"
                 ] = weights_filename
+
+        for submodel in sd_model_map:
+            if submodel not in external_weight_archive_map:
+                continue
+            self.map[submodel]["weight_tensors"] = external_weight_archive_map[submodel]
 
         self.batch_size = batch_size
         self.model_max_length = max_length
