@@ -109,13 +109,14 @@ class PipelineComponent:
         module_name: str,
         external_weight_path: str = None,
         extra_plugin=None,
+        submodel_iree_param_module=None,
     ):
         self.module_name = module_name
         self.printer.print(
             f"Loading {module_name} from {vmfb_path} with external weights: {external_weight_path}."
         )
         self.runner = vmfbRunner(
-            rt_device, vmfb_path, external_weight_path, extra_plugin
+            rt_device, vmfb_path, external_weight_path, extra_plugin, submodel_iree_param_module
         )
         self.device = self.runner.config.device
         self.module = getattr(self.runner.ctx.modules, module_name)
@@ -754,6 +755,7 @@ class TurbinePipelineBase:
             self.load_submodel(submodel)
 
     def load_submodel(self, submodel):
+        submodel_iree_param_module = self.map[submodel].get("weight_tensors")
         if not self.map[submodel].get("vmfb"):
             raise ValueError(f"VMFB not found for {submodel}.")
         if not self.map[submodel].get("weights") and self.map[submodel].get(
@@ -773,6 +775,7 @@ class TurbinePipelineBase:
             self.map[submodel]["module_name"],
             self.map[submodel].get("weights"),
             self.map[submodel].get("extra_plugin"),
+            submodel_iree_param_module,
         )
         setattr(self, submodel, self.map[submodel]["runner"])
 
