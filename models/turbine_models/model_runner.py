@@ -5,7 +5,7 @@ from iree.runtime._binding import create_hal_driver
 
 
 class vmfbRunner:
-    def __init__(self, device, vmfb_path, external_weight_path=None, extra_plugin=None):
+    def __init__(self, device, vmfb_path, external_weight_path=None, extra_plugin=None, external_weight_archive=None):
         flags = []
 
         # If an extra plugin is requested, add a global flag to load the plugin
@@ -59,7 +59,12 @@ class vmfbRunner:
         ]
 
         # TODO: Enable multiple weight files
-        if external_weight_path:
+        # Give first preference to already loaded weights.
+        if external_weight_archive:
+            for i, param_module in enumerate(external_weight_archive):
+                vm_modules.push(i, param_module)
+            del external_weight_archive
+        elif external_weight_path:
             index = ireert.ParameterIndex()
             if not isinstance(external_weight_path, list):
                 external_weight_path = [external_weight_path]
